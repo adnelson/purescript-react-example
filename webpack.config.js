@@ -20,6 +20,15 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.css$/,
+        loader: 'css-loader',
+        // use: [
+        //   "style-loader", // creates style nodes from JS strings
+        //   "css-loader", // translates CSS into CommonJS
+        //   "sass-loader" // compiles Sass to CSS, using Node Sass by default
+        // ]
+      },
+      {
         test: /\.purs$/,
         exclude: /node_modules/,
         loader: 'purs-loader',
@@ -30,7 +39,7 @@ module.exports = {
           ],
           pscIde: true
         }
-      }
+      },
     ]
   },
 
@@ -42,7 +51,8 @@ module.exports = {
 
     extensions: [
       '.purs',
-      '.js'
+      '.js',
+      '.css'
     ]
   }
 };

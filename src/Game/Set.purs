@@ -2,7 +2,6 @@ module Game.Set (Attribute(..), renderCard) where
 
 import Prelude
 
-import Undefined
 import Data.Array (all, length, nub)
 import Data.Generic.Rep (class Generic) as G
 import Data.Generic.Rep.Ord as GO
@@ -13,9 +12,6 @@ import React (ReactElement)
 import React.DOM as DOM
 import React.DOM.Props as DOMProps
 import React.DOM.SVG.Dynamic as SVG
-
--- import Spork.Html (Html)
--- import Spork.Html as H
 
 --------------------------------------------------------------------------------
 --- * Attribute: a generic "one of three choices" type.
