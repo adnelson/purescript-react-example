@@ -1,8 +1,11 @@
 module Example.TodoList where
 
-import Prelude
+import Prelude (Unit, pure, unit, (/=), (<$>))
 
 import Effect (Effect)
+
+
+import Game.Set
 
 import Data.Array (filter)
 import Data.Maybe (Maybe)
