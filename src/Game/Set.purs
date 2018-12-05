@@ -108,8 +108,8 @@ renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
         ]
       }
 
-renderCard :: Card -> ReactElement
-renderCard card = do
+renderCard :: { card :: Card, isSelected :: Boolean } -> ReactElement
+renderCard { card, isSelected } = do
   let shape = renderShape card
       shapes = case card.count of
         First -> [shape]
