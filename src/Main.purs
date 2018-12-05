@@ -5,7 +5,7 @@ import Prelude
 import Effect (Effect)
 import Effect.Console (log)
 
-import Data.Array (snoc, modifyAt, elemIndex)
+import Data.Array (snoc, modifyAt, elemIndex, cons)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 
 import Web.HTML.HTMLDocument (toNonElementParentNode) as DOM
@@ -13,6 +13,7 @@ import Web.DOM.NonElementParentNode (getElementById) as DOM
 import Web.HTML (window) as DOM
 import Web.HTML.Window (document) as DOM
 import React.DOM as DOM
+import React.DOM.Props as Props
 
 import Partial.Unsafe (unsafePartial)
 
@@ -32,26 +33,30 @@ main = void $ do
   ReactDOM.render (React.createLeafElement mainClass { }) element'
 
 cards :: _
-cards = [
-  {
-    shape: Set.First,
-    color: Set.First,
-    shading: Set.First,
-    count: Set.First
-  },
-  {
-    shape: Set.Third,
-    color: Set.Third,
-    shading: Set.Third,
-    count: Set.Third
-  },
-  {
-    shape: Set.Second,
-    color: Set.Second,
-    shading: Set.Second,
-    count: Set.Second
-  }
-  ]
+cards = do
+  let go 0 _ acc = acc
+      go n item acc = go (n - 1) (Set.nextCard item) (cons item acc)
+  go 100 Set.firstCard []
+  -- [
+  --   {
+  --     shape: Set.First,
+  --     color: Set.First,
+  --     shading: Set.First,
+  --     count: Set.First
+  --   },
+  --   {
+  --     shape: Set.Second,
+  --     color: Set.Second,
+  --     shading: Set.Second,
+  --     count: Set.Second
+  --   },
+  --   {
+  --     shape: Set.Third,
+  --     color: Set.Third,
+  --     shading: Set.Third,
+  --     count: Set.Third
+  --   }
+  --   ]
 
 -- figureClass :: React.ReactClass
 
@@ -63,7 +68,7 @@ mainClass = React.component "Main" $ \this -> do
       modifyAt i (\(Todo a) -> Todo a { status = status }) todos
 
     render _ = do
-      DOM.div [] $ map Set.renderCard cards
+      DOM.div [Props.style { display: "flex", flexWrap: "wrap" }] $ map Set.renderCard cards
 
     -- render { todo, todos } = React.createLeafElement todoListClass {
     --   todos,

@@ -1,8 +1,8 @@
-module Game.Set (Attribute(..), renderCard) where
+module Game.Set where
 
 import Prelude
 
-import Data.Array (all, length, nub)
+import Data.Array (all, length, nub, replicate)
 import Data.Generic.Rep (class Generic) as G
 import Data.Generic.Rep.Ord as GO
 import Data.Generic.Rep.Eq as GE
@@ -10,7 +10,8 @@ import Data.Generic.Rep.Show as GS
 
 import React (ReactElement)
 import React.DOM as DOM
-import React.DOM.Props as DOMProps
+import React.DOM.Props (style)
+import React.DOM.Props as DOM
 import React.DOM.SVG.Dynamic as SVG
 
 --------------------------------------------------------------------------------
@@ -34,42 +35,117 @@ type Card = {
   count :: Attribute
   }
 
+firstCard :: Card
+firstCard = {
+  shape: First,
+  color: First,
+  shading: First,
+  count: First
+  }
+
+nextCard :: Card -> Card
+nextCard c = do
+  let -- [shape, color, shading, count] = [c.shape, c.color, c.shading, c.count]
+    inc First = {next: Second, carry: false}
+    inc Second = {next: Third, carry: false}
+    inc Third = {next: First, carry: true}
+
+  case inc c.shape of
+    { next: shape , carry: false} -> c { shape = shape }
+    { next: shape, carry: true } -> case inc c.color of
+      {next: color, carry: false } -> do
+        c { shape = shape, color = color }
+      {next: color, carry: true } -> case inc c.shading of
+        {next: shading, carry: false } -> do
+          c { shape = shape, color = color, shading = shading }
+        {next: shading, carry: true } -> case inc c.count of
+          {next: count, carry: false } -> do
+            c { shape = shape, color = color, shading = shading, count = count }
+          {next: count, carry: true } -> firstCard
+
+cardColor :: Card -> String
+cardColor { color } = case color of
+  First -> "red"
+  Second -> "green"
+  Third -> "blue"
+
 renderShape :: Card -> ReactElement
-renderShape { shape, shading } = elem (attrs <> [fill, stroke]) [] where
-  attr = DOMProps.unsafeMkProps
-  stroke = attr "stroke" "currentColor"
-  fill = attr "fill" $ case shading of
+renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
+  sharedAttrs = [stroke, DOM.strokeWidth 1, fill]
+  stroke = DOM.stroke (cardColor card)
+  fill = DOM.fill $ case shading of
     First -> "none"
-    Second -> "currentColor"
+    Second -> cardColor card
     Third -> "url(#verticalLines)"
   {elem, attrs} = case shape of
     First -> {
       elem: SVG.polygon,
-      attrs: [attr "points" "0,25 50,0 100,25 50, 50"]
+      attrs: [
+        DOM.points "0,25 50,0 100,25 50, 50",
+        DOM.unsafeMkProps "rx" "5",
+        DOM.unsafeMkProps "ry" "5"
+        ]
       }
     Second -> {
       elem: SVG.ellipse,
       attrs: [
-        attr "cx" "50",
-        attr "cy" "25",
-        attr "rx" "50",
-        attr "ry" "25"
+        DOM.unsafeMkProps "cx" "50",
+        DOM.unsafeMkProps "cy" "25",
+        DOM.unsafeMkProps "rx" "50",
+        DOM.unsafeMkProps "ry" "25"
         ]
       }
     Third -> {
       elem: SVG.rect,
       attrs: [
-        attr "x" "0",
-        attr "y" "0",
-        attr "width" "100",
-        attr "height" "50"
+        DOM.unsafeMkProps "x" "0",
+        DOM.unsafeMkProps "y" "0",
+        DOM.unsafeMkProps "width" "100",
+        DOM.unsafeMkProps "height" "50",
+        DOM.unsafeMkProps "rx" "5",
+        DOM.unsafeMkProps "ry" "5"
         ]
       }
 
 renderCard :: Card -> ReactElement
-renderCard card = SVG.svg [] [
-  renderShape card
-  ]
+renderCard card = do
+  let shape = renderShape card
+      shapes = case card.count of
+        First -> [shape]
+        Second -> [shape, shape]
+        Third -> [shape, shape, shape]
+      svgChildren = case card.shading of
+        Third -> [
+          SVG.pattern [
+             DOM._id "verticalLines",
+             DOM.unsafeMkProps "patternUnits" "userSpaceOnUse",
+             DOM.width "4",
+             DOM.height "4"
+             ] [
+             SVG.path [
+                DOM.unsafeMkProps "d" "M2,0 l0,4",
+                DOM.stroke (cardColor card),
+                DOM.unsafeMkProps "strokeWidth" "1.5"
+                ] []
+             ]
+          ]
+        _ -> []
+      toSVG shape = flip SVG.svg (svgChildren <> [shape]) [
+        style { width: "100px" },
+        DOM.viewBox "-1 -1 102 52"
+        ]
+      styles = style {
+        display: "flex",
+        flexDirection: "column",
+        width: "100px",
+        height: "150px",
+        padding: "15px",
+        border: "1px solid black",
+        borderRadius: "5px",
+        marginBottom: "5px",
+        justifyContent: "space-evenly"
+        }
+  DOM.div [DOM.className "Card", styles] $ map toSVG shapes
 
 isSet :: Card -> Card -> Card -> Boolean
 isSet a b c = all ok [shapes, colors, shadings, counts]
