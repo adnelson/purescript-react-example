@@ -4,8 +4,11 @@ import Prelude
 
 import Effect (Effect)
 import Effect.Console (log)
+import Effect.Random as Random
 
-import Data.Array (snoc, modifyAt, elemIndex, cons)
+import Data.Tuple (Tuple(..), snd)
+import Data.Array (snoc, modifyAt, elemIndex, cons, length, sortBy, zip, fromFoldable)
+import Data.List.Lazy (replicateM)
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 
 import Web.HTML.HTMLDocument (toNonElementParentNode) as DOM
@@ -24,6 +27,13 @@ import Game.Set as Set
 import Example.TodoList (todoListClass)
 import Example.Types (Todo(..), TodoStatus(..))
 
+shuffle :: forall e a. Array a -> Effect (Array a)
+shuffle xs = do
+  let len = length xs
+  randoms <- fromFoldable <$> replicateM len (Random.randomInt 0 (len - 1))
+  pure $ map snd $ sortBy compareFst $ zip randoms xs
+  where compareFst (Tuple a _) (Tuple b _) = compare a b
+
 main :: Effect Unit
 main = void $ do
   document <- DOM.document =<< DOM.window
@@ -36,32 +46,11 @@ cards :: _
 cards = do
   let go 0 _ acc = acc
       go n item acc = go (n - 1) (Set.nextCard item) (snoc acc item)
-  go 100 Set.firstCard []
-  -- [
-  --   {
-  --     shape: Set.First,
-  --     color: Set.First,
-  --     shading: Set.First,
-  --     count: Set.First
-  --   },
-  --   {
-  --     shape: Set.Second,
-  --     color: Set.Second,
-  --     shading: Set.Second,
-  --     count: Set.Second
-  --   },
-  --   {
-  --     shape: Set.Third,
-  --     color: Set.Third,
-  --     shading: Set.Third,
-  --     count: Set.Third
-  --   }
-  --   ]
-
--- figureClass :: React.ReactClass
+  shuffle $ go 81 Set.firstCard []
 
 mainClass :: React.ReactClass { }
 mainClass = React.component "Main" $ \this -> do
+  cards' <- cards
   let
     setStatus todos todo status = fromMaybe todos $ do
       i <- elemIndex todo todos
@@ -72,7 +61,7 @@ mainClass = React.component "Main" $ \this -> do
       maxWidth: "800px"
       }
     render _ = do
-      DOM.div [styles] $ map Set.renderCard cards
+      DOM.div [styles] $ map Set.renderCard cards'
 
     -- render { todo, todos } = React.createLeafElement todoListClass {
     --   todos,
