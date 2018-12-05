@@ -35,7 +35,7 @@ main = void $ do
 cards :: _
 cards = do
   let go 0 _ acc = acc
-      go n item acc = go (n - 1) (Set.nextCard item) (cons item acc)
+      go n item acc = go (n - 1) (Set.nextCard item) (snoc acc item)
   go 100 Set.firstCard []
   -- [
   --   {
@@ -66,9 +66,13 @@ mainClass = React.component "Main" $ \this -> do
     setStatus todos todo status = fromMaybe todos $ do
       i <- elemIndex todo todos
       modifyAt i (\(Todo a) -> Todo a { status = status }) todos
-
+    styles = Props.style {
+      display: "grid",
+      gridTemplateColumns: "repeat(4, auto)",
+      maxWidth: "800px"
+      }
     render _ = do
-      DOM.div [Props.style { display: "flex", flexWrap: "wrap" }] $ map Set.renderCard cards
+      DOM.div [styles] $ map Set.renderCard cards
 
     -- render { todo, todos } = React.createLeafElement todoListClass {
     --   todos,

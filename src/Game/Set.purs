@@ -71,19 +71,20 @@ cardColor { color } = case color of
 
 renderShape :: Card -> ReactElement
 renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
-  sharedAttrs = [stroke, DOM.strokeWidth 1, fill]
+  sharedAttrs = [stroke, DOM.strokeWidth 2, fill]
   stroke = DOM.stroke (cardColor card)
   fill = DOM.fill $ case shading of
     First -> "none"
     Second -> cardColor card
-    Third -> "url(#verticalLines)"
+    Third -> "url(#verticalLines" <> cardColor card <> ")"
   {elem, attrs} = case shape of
     First -> {
       elem: SVG.polygon,
       attrs: [
         DOM.points "0,25 50,0 100,25 50, 50",
-        DOM.unsafeMkProps "rx" "5",
-        DOM.unsafeMkProps "ry" "5"
+        DOM.unsafeMkProps "rx" "15",
+        DOM.unsafeMkProps "ry" "15",
+        DOM.unsafeMkProps "strokeLinejoin" "round"
         ]
       }
     Second -> {
@@ -117,7 +118,7 @@ renderCard card = do
       svgChildren = case card.shading of
         Third -> [
           SVG.pattern [
-             DOM._id "verticalLines",
+             DOM._id ("verticalLines" <> cardColor card),
              DOM.unsafeMkProps "patternUnits" "userSpaceOnUse",
              DOM.width "4",
              DOM.height "4"
