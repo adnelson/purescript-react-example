@@ -11,7 +11,6 @@ import Data.Generic.Rep.Show as GS
 
 import React (ReactElement)
 import React.DOM as DOM
-import React.DOM.Props (style)
 import React.DOM.Props as DOM
 import React.DOM.SVG.Dynamic as SVG
 
@@ -81,7 +80,7 @@ renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
   sharedAttrs = [stroke, DOM.strokeWidth 2, fill]
   stroke = DOM.stroke (cardColor card)
   fill = DOM.fill $ case shading of
-    First -> "none"
+    First -> "white"
     Second -> cardColor card
     Third -> "url(#verticalLines" <> cardColor card <> ")"
   {elem, attrs} = case shape of
@@ -130,6 +129,13 @@ renderCard { card, isSelected } = do
              DOM.width "4",
              DOM.height "4"
              ] [
+             SVG.rect [
+                DOM.unsafeMkProps "x" "0",
+                DOM.unsafeMkProps "y" "0",
+                DOM.unsafeMkProps "width" "4",
+                DOM.unsafeMkProps "height" "4",
+                DOM.fill "white"
+                ] [],
              SVG.path [
                 DOM.unsafeMkProps "d" "M2,0 l0,4",
                 DOM.stroke (cardColor card),
@@ -138,24 +144,11 @@ renderCard { card, isSelected } = do
              ]
           ]
         _ -> []
+      className = DOM.className ("Card" <> if isSelected then " selected" else "")
       toSVG shape = flip SVG.svg (svgChildren <> [shape]) [
-        style { width: "80px" },
         DOM.viewBox "-1 -1 102 52"
         ]
-      styles = style {
-        display: "flex",
-        flexDirection: "column",
-        width: "100px",
-        height: "130px",
-        padding: "15px",
-        border: "1px solid black",
-        borderRadius: "5px",
-        background: if isSelected then "gray" else "white",
-        marginBottom: "5px",
-        justifyContent: "space-evenly",
-        alignItems: "center"
-        }
-  DOM.div [DOM.className "Card", styles] $ map toSVG shapes
+  DOM.div [className] $ map toSVG shapes
 
 isSet :: Card -> Card -> Card -> Boolean
 isSet a b c = all ok [shapes, colors, shadings, counts]
