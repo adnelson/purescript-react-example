@@ -2,6 +2,7 @@ module Game.Set where
 
 import Prelude
 
+import Data.Hashable (class Hashable)
 import Data.Array (all, length, nub, replicate)
 import Data.Generic.Rep (class Generic) as G
 import Data.Generic.Rep.Ord as GO
@@ -27,6 +28,12 @@ instance ordAttribute :: Ord Attribute where
 
 instance showAttribute :: Show Attribute where
   show = GS.genericShow
+
+instance hashableAttribute :: Hashable Attribute where
+  hash attr = case attr of
+    First -> 1
+    Second -> 2
+    Third -> 3
 
 type Card = {
   shape :: Attribute,
@@ -132,19 +139,21 @@ renderCard { card, isSelected } = do
           ]
         _ -> []
       toSVG shape = flip SVG.svg (svgChildren <> [shape]) [
-        style { width: "100px" },
+        style { width: "80px" },
         DOM.viewBox "-1 -1 102 52"
         ]
       styles = style {
         display: "flex",
         flexDirection: "column",
         width: "100px",
-        height: "150px",
+        height: "130px",
         padding: "15px",
         border: "1px solid black",
         borderRadius: "5px",
+        background: if isSelected then "gray" else "white",
         marginBottom: "5px",
-        justifyContent: "space-evenly"
+        justifyContent: "space-evenly",
+        alignItems: "center"
         }
   DOM.div [DOM.className "Card", styles] $ map toSVG shapes
 
