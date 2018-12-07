@@ -14,7 +14,6 @@ import Game.Set.Card (Card, renderCard)
 type Props = {
   displayedCards :: Array Card,
   selectedCards :: HS.HashSet Card,
-
   selectCard :: Card -> Effect Unit
   }
 

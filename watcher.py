@@ -28,20 +28,31 @@ def get_changed(mtimes):
                     changed_files.add(path)
     return mtimes, changed_files
 
-mtimes = {}
-while True:
-    mtimes, changed_files = get_changed(mtimes)
-    if len(changed_files) > 0:
-        print("\033[32mFiles changed:\033[0m")
-        for f in sorted(changed_files):
-            print("\033[32m    {}\033[0m".format(f))
-        start = time.time()
-        code = call('pulp browserify > bundle.js', shell=True)
-        if code == 0:
-            print("\033[32mbuilt successfully, {} seconds\033[0m"
-                  .format(time.time() - start))
+try:
+    watcher_pid = open('.watcher.pid').read()
+    exit("Looks like another watcher is running?")
+except Exception:
+    pass
+
+try:
+    with open(".watcher.pid", "w") as fh:
+        fh.write(str(os.getpid()))
+    mtimes = {}
+    while True:
+        mtimes, changed_files = get_changed(mtimes)
+        if len(changed_files) > 0:
+            print("\033[32mFiles changed:\033[0m")
+            for f in sorted(changed_files):
+                print("\033[32m    {}\033[0m".format(f))
+            start = time.time()
+            code = call('pulp browserify > bundle.js', shell=True)
+            if code == 0:
+                print("\033[32mbuilt successfully, {} seconds\033[0m"
+                      .format(time.time() - start))
+            else:
+                print("\033[31mbuild failed, {} seconds\033[0m"
+                      .format(time.time() - start))
         else:
-            print("\033[31mbuild failed, {} seconds\033[0m"
-                  .format(time.time() - start))
-    else:
-        time.sleep(2)
+            time.sleep(2)
+finally:
+    os.unlink(".watcher.pid")

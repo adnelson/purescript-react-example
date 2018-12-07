@@ -2,6 +2,7 @@ module Common (
   module Prelude,
   module Effect,
   module Data.Foldable,
+  module Data.Maybe,
   shuffle
   ) where
 

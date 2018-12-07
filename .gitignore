@@ -10,3 +10,5 @@ node_modules/
 bower_components/
 tmp/
 output/
+.watcher.pid
+bundled.index.html

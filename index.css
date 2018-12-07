@@ -38,14 +38,14 @@ article {
 .Card {
     display: flex;
     flex-direction: column;
-    width: 100px;
-    height: 130px;
-    padding: 15px;
+    width: 115px;
+    height: 150px;
     border: 1px solid black;
     border-radius: 5px;
     margin-bottom: 5px;
     justify-content: space-evenly;
     align-items: center;
+    transition: all 0.1s ease-in;
 
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#e4f5fc+0,bfe8f9+40,9fd8ef+72,2ab0ed+100 */
     background: rgb(228,245,252); /* Old browsers */
@@ -55,8 +55,16 @@ article {
     background: grey;
 }
 
+.Card:hover {
+    box-shadow: 0px 0px 4px 2px rgba(247,250,255,1);
+}
+
 .Card svg {
     width: 80px;
+}
+
+.CardContainer {
+    cursor: pointer;
 }
 
 .CardGrid {
@@ -80,14 +88,19 @@ article {
      */
 }
 
-main.Game {
+main.SetGame {
     display: grid;
-    grid-template-columns: auto 15rem;
+    grid-template-columns: 85% auto;
     width: 100%;
+    cursor: default;
 }
 
 .Dashboard {
     padding-left: 1rem;
     border-left: 1px solid gray;
     height: 100%;
+}
+
+.Dashboard .Score {
+    font-size: 1.5em;
 }
