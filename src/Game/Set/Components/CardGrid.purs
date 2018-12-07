@@ -1,43 +1,39 @@
-module Game.CardGrid where
+module Game.Set.Components.CardGrid where
 
-import Prelude
-import React as React
-import Effect (Effect)
+import Common
+import Common.DOM (divClass) as DOM
+
 import Effect.Console (log)
 import Data.HashSet as HS
 
 import Data.Array as Array
 import React as React
-import React.DOM as DOM
 import React.DOM.Props as Props
-import Game.Set (Card, renderCard)
+import Game.Set.Card (Card, renderCard)
 
 type Props = {
-  cards :: Array Card,
+  displayedCards :: Array Card,
   selectedCards :: HS.HashSet Card,
+
   selectCard :: Card -> Effect Unit
   }
 
 cardGrid :: React.ReactClass Props
 cardGrid = React.component "CardGrid" $ \this -> do
   let
-    render { cards, selectedCards, selectCard } = do
+    render { displayedCards, selectedCards, selectCard } = do
       let
-        numCols = Array.length cards `div` 3
-        styles = Props.style {
-          display: "grid",
-          gridTemplateColumns: "repeat(" <> show numCols <> ", auto)",
-          maxWidth: "800px"
-          }
+        numCols = Array.length displayedCards `div` 3
         mkCard card = do
-          DOM.div [
+          DOM.divClass "CardContainer" [
             Props.onClick $ \_ -> do
               log ("selecting " <> show card)
               selectCard card
             ] [
             renderCard { card, isSelected: HS.member card selectedCards }
             ]
-      DOM.section [styles] $ map mkCard cards
+      DOM.divClass "CardGrid space-fill" [] $
+        map mkCard displayedCards
   pure {
     state: {},
     render: do

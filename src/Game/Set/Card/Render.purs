@@ -1,86 +1,21 @@
-module Game.Set where
+module Game.Set.Card.Render where
 
 import Prelude
-
-import Data.Hashable (class Hashable)
-import Data.Array (all, length, nub, replicate)
-import Data.Generic.Rep (class Generic) as G
-import Data.Generic.Rep.Ord as GO
-import Data.Generic.Rep.Eq as GE
-import Data.Generic.Rep.Show as GS
 
 import React (ReactElement)
 import React.DOM as DOM
 import React.DOM.Props as DOM
 import React.DOM.SVG.Dynamic as SVG
 
---------------------------------------------------------------------------------
---- * Attribute: a generic "one of three choices" type.
-data Attribute = First | Second | Third
-derive instance genericAttribute :: G.Generic Attribute _
-
-instance eqAttribute :: Eq Attribute where
-  eq = GE.genericEq
-
-instance ordAttribute :: Ord Attribute where
-  compare = GO.genericCompare
-
-instance showAttribute :: Show Attribute where
-  show = GS.genericShow
-
-instance hashableAttribute :: Hashable Attribute where
-  hash attr = case attr of
-    First -> 1
-    Second -> 2
-    Third -> 3
-
-type Card = {
-  shape :: Attribute,
-  color :: Attribute,
-  shading :: Attribute,
-  count :: Attribute
-  }
-
-firstCard :: Card
-firstCard = {
-  shape: First,
-  color: First,
-  shading: First,
-  count: First
-  }
-
-nextCard :: Card -> Card
-nextCard c = do
-  let -- [shape, color, shading, count] = [c.shape, c.color, c.shading, c.count]
-    inc First = {next: Second, carry: false}
-    inc Second = {next: Third, carry: false}
-    inc Third = {next: First, carry: true}
-
-  case inc c.shape of
-    { next: shape , carry: false} -> c { shape = shape }
-    { next: shape, carry: true } -> case inc c.color of
-      {next: color, carry: false } -> do
-        c { shape = shape, color = color }
-      {next: color, carry: true } -> case inc c.shading of
-        {next: shading, carry: false } -> do
-          c { shape = shape, color = color, shading = shading }
-        {next: shading, carry: true } -> case inc c.count of
-          {next: count, carry: false } -> do
-            c { shape = shape, color = color, shading = shading, count = count }
-          {next: count, carry: true } -> firstCard
-
-cardColor :: Card -> String
-cardColor { color } = case color of
-  First -> "red"
-  Second -> "green"
-  Third -> "blue"
+import Game.Set.Card.Types (Card, Attribute(..))
+import Game.Set.Card.Utils (cardColor)
 
 renderShape :: Card -> ReactElement
 renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
   sharedAttrs = [stroke, DOM.strokeWidth 2, fill]
   stroke = DOM.stroke (cardColor card)
   fill = DOM.fill $ case shading of
-    First -> "white"
+    First -> "none"
     Second -> cardColor card
     Third -> "url(#verticalLines" <> cardColor card <> ")"
   {elem, attrs} = case shape of
@@ -134,7 +69,7 @@ renderCard { card, isSelected } = do
                 DOM.unsafeMkProps "y" "0",
                 DOM.unsafeMkProps "width" "4",
                 DOM.unsafeMkProps "height" "4",
-                DOM.fill "white"
+                DOM.fill "transparent"
                 ] [],
              SVG.path [
                 DOM.unsafeMkProps "d" "M2,0 l0,4",
@@ -149,12 +84,3 @@ renderCard { card, isSelected } = do
         DOM.viewBox "-1 -1 102 52"
         ]
   DOM.div [className] $ map toSVG shapes
-
-isSet :: Card -> Card -> Card -> Boolean
-isSet a b c = all ok [shapes, colors, shadings, counts]
-  where
-    shapes = nub [a.shape, b.shape, c.shape]
-    colors = nub [a.color, b.color, c.color]
-    shadings = nub [a.shading, b.shading, c.shading]
-    counts = nub [a.count, b.count, c.count]
-    ok list = length list == 1 || length list == 3
