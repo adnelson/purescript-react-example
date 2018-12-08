@@ -10,7 +10,9 @@
     "purescript-console": "^4.0.0",
     "purescript-react": "^6.0.0",
     "purescript-web-html": "^1.0.0",
-    "purescript-generics-rep": "*"
+    "purescript-generics-rep": "*",
+    "purescript-js-timers": "*",
+    "purescript-uuid": "*"
   },
   "resolutions": {
     "purescript-newtype": "^3.0.0"

@@ -1,7 +1,10 @@
-module Game.Set.Card.Utils where
+module Game.Set.Card.Utils (
+  firstCard, nextCard, cardColor, newShuffledCards, findSets, isSet
+  ) where
 
 import Common
 
+import Data.Function.Uncurried (Fn3, runFn3)
 import Data.Array (all, snoc, length, nub, replicate)
 
 import Game.Set.Card.Types (Card, Attribute(..))
@@ -48,7 +51,15 @@ allCards = go 81 firstCard [] where
 newShuffledCards :: Effect (Array Card)
 newShuffledCards = shuffle allCards
 
+
+
+foreign import isSet__ :: Fn3 Card Card Card Boolean
+
+
 isSet :: Card -> Card -> Card -> Boolean
+isSet = runFn3 isSet__
+
+{-
 isSet a b c = all ok [shapes, colors, shadings, counts]
   where
     shapes = nub [a.shape, b.shape, c.shape]
@@ -56,3 +67,5 @@ isSet a b c = all ok [shapes, colors, shadings, counts]
     shadings = nub [a.shading, b.shading, c.shading]
     counts = nub [a.count, b.count, c.count]
     ok list = length list == 1 || length list == 3
+-}
+foreign import findSets :: Array Card -> Array (Array Card)

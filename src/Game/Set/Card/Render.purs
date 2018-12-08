@@ -1,10 +1,14 @@
 module Game.Set.Card.Render where
 
-import Prelude
+import Common
+import Common.DOM as DOM
+
+import Data.Array as Array
+import Data.HashSet as HS
 
 import React (ReactElement)
 import React.DOM as DOM
-import React.DOM.Props as DOM
+import React.DOM.Props as Props
 import React.DOM.SVG.Dynamic as SVG
 
 import Game.Set.Card.Types (Card, Attribute(..))
@@ -12,9 +16,9 @@ import Game.Set.Card.Utils (cardColor)
 
 renderShape :: Card -> ReactElement
 renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
-  sharedAttrs = [stroke, DOM.strokeWidth 2, fill]
-  stroke = DOM.stroke (cardColor card)
-  fill = DOM.fill $ case shading of
+  sharedAttrs = [stroke, Props.strokeWidth 2, fill]
+  stroke = Props.stroke (cardColor card)
+  fill = Props.fill $ case shading of
     First -> "none"
     Second -> cardColor card
     Third -> "url(#verticalLines" <> cardColor card <> ")"
@@ -22,35 +26,35 @@ renderShape card@{ shape, shading } = elem (attrs <> sharedAttrs) [] where
     First -> {
       elem: SVG.polygon,
       attrs: [
-        DOM.points "0,25 50,0 100,25 50, 50",
-        DOM.unsafeMkProps "rx" "15",
-        DOM.unsafeMkProps "ry" "15",
-        DOM.unsafeMkProps "strokeLinejoin" "round"
+        Props.points "0,25 50,0 100,25 50, 50",
+        Props.unsafeMkProps "rx" "15",
+        Props.unsafeMkProps "ry" "15",
+        Props.unsafeMkProps "strokeLinejoin" "round"
         ]
       }
     Second -> {
       elem: SVG.ellipse,
       attrs: [
-        DOM.unsafeMkProps "cx" "50",
-        DOM.unsafeMkProps "cy" "25",
-        DOM.unsafeMkProps "rx" "50",
-        DOM.unsafeMkProps "ry" "25"
+        Props.unsafeMkProps "cx" "50",
+        Props.unsafeMkProps "cy" "25",
+        Props.unsafeMkProps "rx" "50",
+        Props.unsafeMkProps "ry" "25"
         ]
       }
     Third -> {
       elem: SVG.rect,
       attrs: [
-        DOM.unsafeMkProps "x" "0",
-        DOM.unsafeMkProps "y" "0",
-        DOM.unsafeMkProps "width" "100",
-        DOM.unsafeMkProps "height" "50",
-        DOM.unsafeMkProps "rx" "5",
-        DOM.unsafeMkProps "ry" "5"
+        Props.unsafeMkProps "x" "0",
+        Props.unsafeMkProps "y" "0",
+        Props.unsafeMkProps "width" "100",
+        Props.unsafeMkProps "height" "50",
+        Props.unsafeMkProps "rx" "5",
+        Props.unsafeMkProps "ry" "5"
         ]
       }
 
-renderCard :: { card :: Card, isSelected :: Boolean } -> ReactElement
-renderCard { card, isSelected } = do
+renderCard :: Card -> ReactElement
+renderCard card = do
   let shape = renderShape card
       shapes = case card.count of
         First -> [shape]
@@ -59,28 +63,52 @@ renderCard { card, isSelected } = do
       svgChildren = case card.shading of
         Third -> [
           SVG.pattern [
-             DOM._id ("verticalLines" <> cardColor card),
-             DOM.unsafeMkProps "patternUnits" "userSpaceOnUse",
-             DOM.width "4",
-             DOM.height "4"
+             Props._id ("verticalLines" <> cardColor card),
+             Props.unsafeMkProps "patternUnits" "userSpaceOnUse",
+             Props.width "4",
+             Props.height "4"
              ] [
              SVG.rect [
-                DOM.unsafeMkProps "x" "0",
-                DOM.unsafeMkProps "y" "0",
-                DOM.unsafeMkProps "width" "4",
-                DOM.unsafeMkProps "height" "4",
-                DOM.fill "transparent"
+                Props.unsafeMkProps "x" "0",
+                Props.unsafeMkProps "y" "0",
+                Props.unsafeMkProps "width" "4",
+                Props.unsafeMkProps "height" "4",
+                Props.fill "transparent"
                 ] [],
              SVG.path [
-                DOM.unsafeMkProps "d" "M2,0 l0,4",
-                DOM.stroke (cardColor card),
-                DOM.unsafeMkProps "strokeWidth" "1.5"
+                Props.unsafeMkProps "d" "M2,0 l0,4",
+                Props.stroke (cardColor card),
+                Props.unsafeMkProps "strokeWidth" "1.5"
                 ] []
              ]
           ]
         _ -> []
-      className = DOM.className ("Card" <> if isSelected then " selected" else "")
+      className = "Card"
       toSVG shape = flip SVG.svg (svgChildren <> [shape]) [
-        DOM.viewBox "-1 -1 102 52"
+        Props.viewBox "-1 -1 102 52"
         ]
-  DOM.div [className] $ map toSVG shapes
+  DOM.divClass className [] $ map toSVG shapes
+
+renderCardContainer :: {
+  card :: Card,
+  selectCard :: Card -> Effect Unit,
+  isSelected :: Boolean
+  } -> ReactElement
+renderCardContainer { selectCard, card, isSelected } = do
+  let className = "CardContainer" <> if isSelected then " selected" else ""
+      props = [Props.onClick $ \_ -> selectCard card]
+  DOM.divClass className props [renderCard card]
+
+renderCardGrid :: forall r. {
+  displayedCards :: Array Card,
+  selectedCards :: HS.HashSet Card,
+  selectCard :: Card -> Effect Unit
+  | r } -> ReactElement
+renderCardGrid { displayedCards, selectedCards, selectCard } = do
+  let
+    numCols = Array.length displayedCards `div` 3
+    mkCard card = do
+      let isSelected = HS.member card selectedCards
+      renderCardContainer { card, selectCard, isSelected }
+  DOM.divClass "CardGrid space-fill" [] $
+    map mkCard displayedCards
