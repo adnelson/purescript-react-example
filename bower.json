@@ -12,7 +12,9 @@
     "purescript-web-html": "^1.0.0",
     "purescript-generics-rep": "*",
     "purescript-js-timers": "*",
-    "purescript-uuid": "*"
+    "purescript-uuid": "*",
+    "purescript-unordered-collections": "*",
+    "purescript-random": "*"
   },
   "resolutions": {
     "purescript-newtype": "^3.0.0"
